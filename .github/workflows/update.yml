@@ -1,0 +1,43 @@
+name: Update plane-desktop
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Check for a new release
+        id: update
+        run: |
+          nix run .#update | tee update.log
+          echo "summary=$(tail -n1 update.log)" >> "$GITHUB_OUTPUT"
+          echo "version=$(jq -r .version pkgs/plane-desktop/sources.json)" >> "$GITHUB_OUTPUT"
+          rm update.log
+
+      # Pull requests opened with GITHUB_TOKEN do not trigger other workflows,
+      # so the new pin is built here before the PR is opened.
+      - name: Build
+        if: ${{ !contains(steps.update.outputs.summary, 'up to date') }}
+        run: nix build -L .#plane-desktop
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: update/plane-desktop
+          delete-branch: true
+          commit-message: "plane-desktop: ${{ steps.update.outputs.summary }}"
+          title: "plane-desktop: update to ${{ steps.update.outputs.version }}"
+          body: |
+            ${{ steps.update.outputs.summary }}
+
+            Release manifest: https://download.todesktop.com/260130r75i625/latest-linux.yml
