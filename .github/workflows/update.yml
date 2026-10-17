@@ -35,7 +35,7 @@ jobs:
         with:
           branch: update/plane-desktop
           delete-branch: true
-          commit-message: "plane-desktop: ${{ steps.update.outputs.summary }}"
+          commit-message: ${{ steps.update.outputs.summary }}
           title: "plane-desktop: update to ${{ steps.update.outputs.version }}"
           body: |
             ${{ steps.update.outputs.summary }}
