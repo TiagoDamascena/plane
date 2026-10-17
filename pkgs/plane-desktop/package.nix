@@ -25,6 +25,10 @@ appimageTools.wrapType2 {
 
   # The AppImage ships its desktop entry and icons under the generic name
   # "desktop", so they are renamed to avoid clashing with other packages.
+  #
+  # Sign-in (e.g. with Google) finishes in the browser, which hands the session
+  # back through a plane:// link; the entry has to claim that scheme for it to
+  # reach the app, since the app cannot register itself from the Nix store.
   extraInstallCommands = ''
     wrapProgram $out/bin/${pname} \
       --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --enable-wayland-ime=true}}"
@@ -33,6 +37,7 @@ appimageTools.wrapType2 {
     substituteInPlace $out/share/applications/${pname}.desktop \
       --replace-fail 'Exec=AppRun --no-sandbox %U' 'Exec=${pname} %U' \
       --replace-fail 'Icon=desktop' 'Icon=${pname}'
+    echo 'MimeType=x-scheme-handler/plane;' >> $out/share/applications/${pname}.desktop
 
     for icon in ${appimageContents}/usr/share/icons/hicolor/*/apps/desktop.png; do
       size=$(basename "$(dirname "$(dirname "$icon")")")
