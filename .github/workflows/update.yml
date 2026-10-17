@@ -13,7 +13,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: cachix/install-nix-action@v31
 
@@ -31,7 +31,7 @@ jobs:
         if: ${{ !contains(steps.update.outputs.summary, 'up to date') }}
         run: nix build -L .#plane-desktop
 
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         with:
           branch: update/plane-desktop
           delete-branch: true
