@@ -25,12 +25,8 @@ jobs:
           echo "version=$(jq -r .version pkgs/plane-desktop/sources.json)" >> "$GITHUB_OUTPUT"
           rm update.log
 
-      # Pull requests opened with GITHUB_TOKEN do not trigger other workflows,
-      # so the new pin is built here before the PR is opened.
-      - name: Build
-        if: ${{ !contains(steps.update.outputs.summary, 'up to date') }}
-        run: nix build -L .#plane-desktop
-
+      # The new pin is validated by CI on the PR. PRs opened with GITHUB_TOKEN
+      # don't start workflows on their own, so CI has to be triggered there.
       - uses: peter-evans/create-pull-request@v8
         with:
           branch: update/plane-desktop
